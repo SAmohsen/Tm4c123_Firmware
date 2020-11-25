@@ -172,10 +172,19 @@ void Mcu_Init(const Mcu_ConfigType *ConfigPtr)
 	uint8 itr;
 	if (NULL_PTR != ConfigPtr)
 	{
+		/*Save Configurations Structure*/
 		g_Mcu_Configs = ConfigPtr;
+
+		/*Use RCC2 To Extend RCC Functions :Writing in RCC2 Overrides RCC*/
+		SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
+
+		/*Set oscillator source Clock :PIOSC As Initial Value*/
+		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xFFFFFF8F) | (CLOCK_SOURCE_PRECISION_INTERNAL_OSCILLATOR<< 4);
+
+		/* Enable Periphrals Clock Gates*/
 		for (itr = 0; itr < NUM_MCU_ACTIVATED_CLOCK_GATES; itr++)
 		{
-			Mcu_peripheralEnable(ConfigPtr->perphClock->perph, ConfigPtr->perphClock->instance);
+			Mcu_peripheralEnable(g_Mcu_Configs->perphClock[itr].perph, g_Mcu_Configs->perphClock[itr].instance);
 		}
 		g_Mcu_Status = MCU_INITIALIZED;
 	}
@@ -242,10 +251,6 @@ Std_ReturnType Mcu_InitClock(Mcu_ClockType ClockSetting)
 	}
 	else
 	{
-
-		/*Use RCC2 To Extend RCC Functions :Writing in RCC2 Overrides RCC*/
-		SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
-
 		/*Set oscillator source Clock */
 		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xFFFFFF8F) | (g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].clockSource << 4);
 		oscClockVal = Mcu_GetOscClockValue(ClockSetting); /*Save Osc Clock*/
@@ -254,20 +259,26 @@ Std_ReturnType Mcu_InitClock(Mcu_ClockType ClockSetting)
 	 	 *	(1)Any clock source (MOSC,PIOSC,PIOSC/4,LFIOS,)
 	 	 *	(2)Phase Locked Loop (PLL) clock generator.
 		 */
-		if (g_Mcu_Configs->ConfiguredclockSettings->pllConfig.pllUse == MCU_PLL_POWERED_ON)
+		if (g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].pllConfig.pllUse == MCU_PLL_POWERED_ON)
 		{
 			/*init PLL */
 			/*The output frequency of the PLL is always 400 MHz and it is independent on the input clock sources.*/
 			Mcu_InitPll(ClockSetting);
 		}
-		else if (g_Mcu_Configs->ConfiguredclockSettings->pllConfig.pllUse == MCU_PLL_POWERD_OFF)
+		else if (g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].pllConfig.pllUse == MCU_PLL_POWERD_OFF)
 		{
+			/*1-bypass PLL */
+			SYSCTL_RCC2_R |= (1 << BYPASS2);
+
+			/*Disable PLL*/
+			SYSCTL_RCC2_R |= (1 << PWRDN2);
+
 			/*Main OSC Setup */
 			if (CLOCK_SOURCE_MAIN_OSCILLATOR == g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].clockSource)
 			{
-				Mcu_ExternalCrystalValueType xtal = g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].xtal;/*get Attached Crystal Value*/
-				SYSCTL_RCC_R &= ~SYSCTL_RCC_XTAL_M;					   /*Clear Attached Crystal Value*/
-				SYSCTL_RCC_R |= g_mainOscillatorAttachedCrystal[xtal]; /*Set external crystal value XTAL*/
+				Mcu_ExternalCrystalValueType xtal = g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].xtal; /*get Attached Crystal Value*/
+				SYSCTL_RCC_R &= ~SYSCTL_RCC_XTAL_M;															   /*Clear Attached Crystal Value*/
+				SYSCTL_RCC_R |= g_mainOscillatorAttachedCrystal[xtal];										   /*Set external crystal value XTAL*/
 				/*Enable Main Oscillator*/
 				SYSCTL_RCC_R &= ~(1 << MOSCDIS);
 			}

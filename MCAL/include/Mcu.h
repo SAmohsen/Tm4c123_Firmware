@@ -141,22 +141,22 @@ typedef enum
 /*Type Defintion For Mcu Periphrals*/
 typedef enum
 {
-	SYSCTL_WD,
-	SYSCTL_TIMER,
-	SYSCTL_GPIO,
-	SYSCTL_CDMA,
-	SYSCTL_CHIB,
-	SYSCTL_CUART,
-	SYSCTL_CSSI,
-	SYSCTL_CI2C,
-	SYSCTL_CUSB,
-	SYSCTL_CCAN,
-	SYSCTL_CADC,
-	SYSCTL_CACMP,
-	SYSCTL_CPWM,
-	SYSCTL_CQEI,
-	SYSCTL_CEEPROM,
-	SYSCTL_CWTIMER,
+	MCU_WD,
+	MCU_TIMER,
+	MCU_GPIO,
+	MCU_CDMA,
+	MCU_CHIB,
+	MCU_CUART,
+	MCU_CSSI,
+	MCU_CI2C,
+	MCU_CUSB,
+	MCU_CCAN,
+	MCU_CADC,
+	MCU_CACMP,
+	MCU_CPWM,
+	MCU_CQEI,
+	MCU_CEEPROM,
+	MCU_CWTIMER,
 } Mcu_PeriphralType;
 
 /*instance For For each Periphral ..Ex =Uart0*/
@@ -221,14 +221,15 @@ typedef struct
 typedef struct
 {
 	Mcu_RamSectionConfigType ramConfigArr[CONFIGURED_RAM_SECTIONS]; 
-	Mcu_periphralClockSettingsType *perphClock; 
+	Mcu_periphralClockSettingsType perphClock[NUM_MCU_ACTIVATED_CLOCK_GATES]; 
 	Mcu_ClockConfigType ConfiguredclockSettings[NUM_OF_CLOCK_SETTINGS];
 } Mcu_ConfigType;
 
 /**********************************************************************************************************************
  *  GLOBAL DATA PROTOTYPES
  *********************************************************************************************************************/
- 
+extern const Mcu_ConfigType MCU_Configurations ;
+
 /**********************************************************************************************************************
  *  GLOBAL FUNCTION PROTOTYPES
  *********************************************************************************************************************/
