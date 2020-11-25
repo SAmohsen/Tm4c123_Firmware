@@ -179,7 +179,7 @@ void Mcu_Init(const Mcu_ConfigType *ConfigPtr)
 		SYSCTL_RCC2_R |= SYSCTL_RCC2_USERCC2;
 
 		/*Set oscillator source Clock :PIOSC As Initial Value*/
-		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xFFFFFF8F) | (CLOCK_SOURCE_PRECISION_INTERNAL_OSCILLATOR<< 4);
+		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xFFFFFF8F) | (CLOCK_SOURCE_PRECISION_INTERNAL_OSCILLATOR << 4);
 
 		/* Enable Periphrals Clock Gates*/
 		for (itr = 0; itr < NUM_MCU_ACTIVATED_CLOCK_GATES; itr++)
@@ -253,7 +253,7 @@ Std_ReturnType Mcu_InitClock(Mcu_ClockType ClockSetting)
 	{
 		/*Set oscillator source Clock */
 		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xFFFFFF8F) | (g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].clockSource << 4);
-		oscClockVal = Mcu_GetOscClockValue(ClockSetting); /*Save Osc Clock*/
+
 		/*
 	 	 * The ARM® Cortex®-M4 Core or processor can be driven by
 	 	 *	(1)Any clock source (MOSC,PIOSC,PIOSC/4,LFIOS,)
@@ -282,10 +282,11 @@ Std_ReturnType Mcu_InitClock(Mcu_ClockType ClockSetting)
 				/*Enable Main Oscillator*/
 				SYSCTL_RCC_R &= ~(1 << MOSCDIS);
 			}
+			oscClockVal = Mcu_GetOscClockValue(ClockSetting); /*Save Osc Clock*/
+			 /*Set system clock divisor.*/
+			sysDiv = (oscClockVal / g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].desiredClock) - 1;
+			SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xE03FFFFF) | (sysDiv << 22);
 		}
-		/*Set system clock divisor.*/
-		sysDiv = (oscClockVal / g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].desiredClock) - 1;
-		SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xE03FFFFF) | (sysDiv << 22);
 	}
 	return ret;
 }
