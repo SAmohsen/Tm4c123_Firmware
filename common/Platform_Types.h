@@ -44,6 +44,7 @@
 #define CPU_BYTE_ORDER      LOW_BYTE_FIRST
 
 #define PLATFORM_WORD_LENGTH 32 
+#define PLATFORM_WORD_LENGTH_BYTES 4 
 /*
  * Boolean Values
  */
