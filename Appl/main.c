@@ -1,22 +1,14 @@
 #include "Mcu.h" 
-
+#include "Dio.h"
+#include "Port.h"
 
 
 int main(void){
-	//Mcu_PerformReset(); 
-	  Mcu_Init(&MCU_Configurations); 
+	  Mcu_Init(&MCU_Configurations);
+Port_init(&portConfigs) ; 	
+Dio_WriteChannel(Dio_PortF_Pin_PF2,STD_HIGH);
 	
 
-	unsigned char c = Mcu_GetPllStatus() ; 
-		
-	  Mcu_InitClock(PLL_CLOCK_SETTINGS) ;
-	
-	c = Mcu_GetPllStatus() ; 
-		
-	Mcu_InitClock(MOSC_CLOCK_SETTINGS);
-  
-	
-  
 	while(1); 
 
 }
