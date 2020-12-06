@@ -33,17 +33,17 @@ const Mcu_ConfigType MCU_Configurations =
     .perphClock[0].perph =MCU_WD , 
     .perphClock[0].instance= 0,
 
-    /*Enable Clock gate Uart 1*/
-    .perphClock[1].perph = MCU_CUART, 
-    .perphClock[1].instance= 1,
+    /*Enable Clock gate ADC0*/
+    .perphClock[1].perph = MCU_CADC, 
+    .perphClock[1].instance= 0,
 
 	/*Enable Clock Gate GPIOA*/
     .perphClock[2].perph = MCU_GPIO, 
     .perphClock[2].instance= 0,
 	
-	/*Enable Clock Gate GPIOB*/
+	/*Enable Clock Gate GPIOE*/
     .perphClock[3].perph =MCU_GPIO , 
-    .perphClock[3].instance= 1,
+    .perphClock[3].instance= 4,
 	
 	/*Enable Clock Gate GPIOF*/
     .perphClock[4].perph = MCU_GPIO, 
