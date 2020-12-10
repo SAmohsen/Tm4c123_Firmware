@@ -1,6 +1,111 @@
-#include "Adc.h"
+#include "include/Adc.h"
 #include "tm4c123gh6pm_hw.h"
 
+STATIC Adc_ModuleStatusType g_Adc_Status = ADC_NOT_INITIALIZED;
+
+/*global Variable To Hold Adc Configurations */
+STATIC const Adc_ConfigChannel *g_AdcConfiguredChannels = NULL_PTR;
+
+/*
+The TM4C123GH6PM microcontroller contains two identical Analog-to-Digital Converter modules.
+These two modules, ADC0 and ADC1, share the same 12 analog input channels.
+	**/
+	#define ADC0_BASE 0x40038000
+#define ADC1_BASE 0x40039000
+static uint32 const adcModules[2]=
+{
+	ADC0_BASE, 
+	ADC1_BASE
+};
+#define  ADCSSMUX0_OFFSET 0x040
+#define  ADCSSMUX1_OFFSET 0x060
+#define  ADCSSMUX2_OFFSET 0x080 
+#define  ADCSSMUX3_OFFSET 0x0A0
+
+static uint32 const adc_ssmuxRegs [4]=
+{
+	ADCSSMUX0_OFFSET,
+	ADCSSMUX1_OFFSET,
+	ADCSSMUX2_OFFSET,
+	ADCSSMUX3_OFFSET
+};
+STATIC Adc_ValueGroupType* g_DataBufferPtr[CONFIG_ADC_GROUPS];
+
+#define ADCACTSS(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE]+0x000))
+#define ADCEMUX(ADC_MODULE)  (*(volatile uint32 *)(adcModules[ADC_MODULE]+0x014))
+#define ADCSSMUX(ADC_MODULE,SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE]+adc_ssmuxRegs[SEQ]))
+
+
+STATIC void __sequencerConfig(Adc_ConfigChannelGroup *groups)
+{
+	uint8 itr ; 
+	uint8 itr2 ; 
+	for (itr = 0 ; itr <CONFIG_ADC_GROUPS; itr++)
+	{
+		/*Disable Sequencers At Begainig*/
+		ADCACTSS(groups[itr].AdcModule) &=~(1<<groups[itr].seqConfig.SampleSequencer) ;
+		
+		/*Set Channels*/
+		for (itr2 = 0 ; itr2 <groups[itr].size ; itr2++)
+		{
+			ADCSSMUX(groups[itr].AdcModule,groups[itr].seqConfig.SampleSequencer) = (groups[itr].groupChannels[itr2]<<itr2 * 4); 
+		}
+		/*Set Sequncer Trigger */
+		if (ADC_TRIGG_SRC_SW == groups[itr].seqConfig.SequencerTriggerSource)
+		{
+			ADCEMUX(groups[itr].AdcModule)=(groups[itr].seqConfig.GroupConv<<(groups[itr].seqConfig.SampleSequencer * 4));
+			
+			/*Enable Sequencers */
+			ADCACTSS(groups[itr].AdcModule) |=(1<<groups[itr].seqConfig.SampleSequencer) ;
+		}
+		else if (ADC_TRIGG_SRC_HW == groups[itr].seqConfig.SequencerTriggerSource)
+		{
+			ADCEMUX(groups[itr].AdcModule)= (groups[itr].seqConfig.HwTriggerSource<<(groups[itr].seqConfig.SampleSequencer * 4)); 
+		}
+	}
+	
+}
+
+void Adc_Init(Adc_ConfigType *ConfigPtr)
+{
+	uint8 itr ; 
+		/*Init ADC Modules With Required Sample Rate*/
+		for (itr =0 ; itr <CONFIG_ADC_MODULE ; itr++)
+		{
+			if(ADC_MODULE_0 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
+			{
+				SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC0_SAMPLE_RATE_MASK) |((ConfigPtr->AdcConfiguredModules[itr]).SampleRate<<MAXADC0SPD);
+			}
+			else if (ADC_MODULE_1 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
+			{
+				SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC1_SAMPLE_RATE_MASK) |((ConfigPtr->AdcConfiguredModules[itr]).SampleRate<<MAXADC1SPD);
+			}
+		}
+		__sequencerConfig(ConfigPtr->AdcConfiguredGroups) ; 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0 
 /*global Variable To Hold Module Status */
 STATIC Adc_ModuleStatusType g_Adc_Status = ADC_NOT_INITIALIZED;
 
@@ -12,13 +117,23 @@ The TM4C123GH6PM microcontroller contains two identical Analog-to-Digital Conver
 These two modules, ADC0 and ADC1, share the same 12 analog input channels.
 
 	**/
-	
+	#define ADC0_BASE 0x40038000
+#define ADC1_BASE 0x40039000
+static uint32 const adcModules[2]=
+{
+	ADC0_BASE, 
+	ADC1_BASE
+};
 STATIC Adc_ValueGroupType* g_DataBufferPtr[CONFIG_ADC_GROUPS];
 
+#define ADCACTSS(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE]+0x000))
 
+static inline SeqSetChannels()
 void Adc_Init( const Adc_ConfigType* ConfigPtr) 
 {
-	uint8 itr ; 
+	uint8 itr ;
+	Adc_SampleSequnecerType seq ; 
+	 Adc_ModuleType adcModule ; 
 	if (NULL_PTR != ConfigPtr)
 	{
 		/*Init ADC Modules With Required Sample Rate*/
@@ -33,11 +148,30 @@ void Adc_Init( const Adc_ConfigType* ConfigPtr)
 				SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC1_SAMPLE_RATE_MASK) |((ConfigPtr->AdcConfiguredModules[itr]).SampleRate<<MAXADC1SPD);
 			}
 		}
-		
-		
 		/*Init Sequencers */
-		
-		
+		for(itr=0;itr <CONFIG_ADC_GROUPS ; itr++)
+		{
+			/*Disable Sequncer Befor Configuring it*/
+			adcModule = ConfigPtr->AdcConfiguredGroups[itr].AdcModule ; 
+			seq = ConfigPtr->AdcConfiguredGroups[itr].seq.SampleSequencer ; 
+			ADCACTSS(adcModule) &=~(1<<seq) ;
+
+
+			/*Set Sequncer Channels*/
+
+
+			/*Set Conversion Mode Type*/
+
+
+
+
+
+
+
+			/*Enable Sample Sequncer After Config*/
+			ADCACTSS(adcModule) |=(1<<seq) ;
+
+		}
 		g_Adc_Status = ADC_INITIALIZED ; 
 	}
 }

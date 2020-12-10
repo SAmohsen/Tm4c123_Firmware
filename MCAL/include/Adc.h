@@ -5,19 +5,45 @@
 #include "Platform_Types.h"
 #include "Std_Types.h"
 
-#define CONFIG_ANALOG_CHANNELS 2
-#define CONFIG_SAMPLE_SEQUNECERS 2
-#define CONFIG_ADC_MODULE 2
-#define CONFIG_ADC_GROUPS 2 
+#include "Adc_cfg.h"
 
+
+/**********************************************************************************************************************
+ *  GLOBAL DATA TYPES AND STRUCTURES
+ *********************************************************************************************************************/
+
+/*Typdef For Adc Module Status */
 typedef enum
 {
     ADC_NOT_INITIALIZED,
     ADC_INITIALIZED
 } Adc_ModuleStatusType;
-typedef uint16 Adc_StreamNumSampleType  ;
-typedef uint16 Adc_ValueGroupType;
-typedef uint8 Adc_GroupType;
+
+/*Numeric ID For ADC Module.*/
+typedef enum
+{
+    ADC_MODULE_0,
+    ADC_MODULE_1
+} Adc_ModuleType;
+
+/*Type For seting the rate at which ADC module samples data*/
+typedef enum
+{
+    ADC_SAMPLE_RATE_125K,/* 125K samples/second	*/
+    ADC_SAMPLE_RATE_250K,/* 250K samples/second */
+    ADC_SAMPLE_RATE_500K,/* 500K samples/second */
+    ADC_SAMPLE_RATE_1M/* 1M samples/second */
+} Adc_SampleRateType;
+
+/*Numeric ID For Sequencer.*/
+typedef enum
+{
+    SS0,
+    SS1,
+    SS2,
+    SS3
+} Adc_SampleSequnecerType;
+
 /*Numeric ID of an ADC channel.*/
 typedef enum
 {
@@ -51,9 +77,9 @@ typedef enum
     ADC_TRIGG_SRC_HW  /*Group is triggered by a hardware event.*/
 } Adc_TriggerSourceType;
 
+/*Type for configuring the HW Event trigger for an ADC Channel group.*/
 typedef enum
 {
-		NA,
     AnalogComparator0,
     AnalogComparator1,
     ExternalGPIO = 4,
@@ -71,41 +97,31 @@ typedef enum
     ADC_CONV_MODE_CONTINUOUS=0x0F /*Repeated conversions of each ADC channel in an ADC channel group are performed.*/
 } Adc_GroupConvModeType;
 
-typedef enum
+/*Type for configuring the streaming access mode buffer type.*/
+typedef enum 
 {
-    ADC_0,
-    ADC_1
-} Adc_ModuleType;
+    ADC_STREAM_BUFFER_LINEAR,/*The ADC Driver stops the conversion as soon as the stream buffer is full (number of samples reached).*/
+    ADC_STREAM_BUFFER_CIRCULAR/*The ADC Driver continues the conversion even if the stream buffer is full (number of samples reached).*/
+}Adc_StreamBufferModeType;
 
-typedef enum
-{
-    SS3,
-    SS2,
-    SS1,
-    SS0
-} Adc_SampleSequnecerType;
+
 typedef enum
 {
     ADC_POLLING,
     ADC_INTERRUPTS
 } Adc_ResultReadMode; /*type for method reading ADC Value*/
 
-typedef enum
-{
-    ADC_SAMPLE_RATE_125K,
-    ADC_SAMPLE_RATE_250K,
-    ADC_SAMPLE_RATE_500K,
-    ADC_SAMPLE_RATE_1M
-} Adc_SampleRateType;
 
 typedef struct {
 	Adc_ModuleType AdcModule ; 
 	Adc_SampleRateType SampleRate ; 
 }Adc_AdcModuleConfig;
+
 typedef struct {
 	Adc_SampleSequnecerType SampleSequencer; 
 	Adc_TriggerSourceType SequencerTriggerSource ; 
 	Adc_HwTriggerSourceType HwTriggerSource ; 
+	Adc_GroupConvModeType GroupConv ; 
 }Adc_SampleSequncerConfig;
 
 typedef struct
@@ -118,10 +134,30 @@ typedef struct
     Adc_ModuleType AdcModule;
     Adc_ResultReadMode read;
 } Adc_ConfigChannel;
+
+typedef uint16 Adc_StreamNumSampleType  ;
+typedef uint16 Adc_ValueGroupType;
+typedef uint8 Adc_GroupType;
+
+typedef uint8 Adc_GroupNumber ; 
+typedef uint8 Adc_GroupChannelSize ;  
+typedef struct 
+{
+		Adc_GroupNumber Num ; 
+	Adc_GroupChannelSize size ; 
+    Adc_ModuleType AdcModule ; 
+    Adc_SampleSequncerConfig seqConfig ; 
+    Adc_GroupConvModeType conversionMode ; 
+    Adc_StreamBufferModeType bufferMode ; 
+    Adc_ChannelType groupChannels[MAX_CHANNELS_PER_GROUP] ; 
+}Adc_ConfigChannelGroup;
+
 typedef struct
 {
     Adc_AdcModuleConfig AdcConfiguredModules[CONFIG_ADC_MODULE];
   	Adc_SampleSequncerConfig AdcConfiguredSequncers[CONFIG_SAMPLE_SEQUNECERS];
     Adc_ConfigChannel AdcConfiguredChannels[CONFIG_ANALOG_CHANNELS];
+    Adc_ConfigChannelGroup AdcConfiguredGroups [CONFIG_ADC_GROUPS] ; 
 } Adc_ConfigType;
+
 #endif

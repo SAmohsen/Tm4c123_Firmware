@@ -1,0 +1,11 @@
+#ifndef ADC_CFG_H_
+#define ADC_CFG_H_
+
+#define CONFIG_ANALOG_CHANNELS 2
+#define CONFIG_SAMPLE_SEQUNECERS 2
+#define CONFIG_ADC_MODULE 2
+#define CONFIG_ADC_GROUPS 2 
+#define MAX_CHANNELS_PER_GROUP 8u
+
+
+#endif
