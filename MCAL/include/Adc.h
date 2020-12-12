@@ -7,7 +7,6 @@
 
 #include "Adc_cfg.h"
 
-
 /**********************************************************************************************************************
  *  GLOBAL DATA TYPES AND STRUCTURES
  *********************************************************************************************************************/
@@ -29,10 +28,10 @@ typedef enum
 /*Type For seting the rate at which ADC module samples data*/
 typedef enum
 {
-    ADC_SAMPLE_RATE_125K,/* 125K samples/second	*/
-    ADC_SAMPLE_RATE_250K,/* 250K samples/second */
-    ADC_SAMPLE_RATE_500K,/* 500K samples/second */
-    ADC_SAMPLE_RATE_1M/* 1M samples/second */
+    ADC_SAMPLE_RATE_125K, /* 125K samples/second	*/
+    ADC_SAMPLE_RATE_250K, /* 250K samples/second */
+    ADC_SAMPLE_RATE_500K, /* 500K samples/second */
+    ADC_SAMPLE_RATE_1M    /* 1M samples/second */
 } Adc_SampleRateType;
 
 /*Numeric ID For Sequencer.*/
@@ -93,17 +92,16 @@ typedef enum
 /*Type for configuring the conversion mode of an ADC Channel group.*/
 typedef enum
 {
-    ADC_CONV_MODE_ONESHOT,   /*Exactly one conversion of each channel in an ADC channel group is performed after the configured trigger event.*/
-    ADC_CONV_MODE_CONTINUOUS=0x0F /*Repeated conversions of each ADC channel in an ADC channel group are performed.*/
+    ADC_CONV_MODE_ONESHOT,          /*Exactly one conversion of each channel in an ADC channel group is performed after the configured trigger event.*/
+    ADC_CONV_MODE_CONTINUOUS = 0x0F /*Repeated conversions of each ADC channel in an ADC channel group are performed.*/
 } Adc_GroupConvModeType;
 
 /*Type for configuring the streaming access mode buffer type.*/
-typedef enum 
+typedef enum
 {
-    ADC_STREAM_BUFFER_LINEAR,/*The ADC Driver stops the conversion as soon as the stream buffer is full (number of samples reached).*/
-    ADC_STREAM_BUFFER_CIRCULAR/*The ADC Driver continues the conversion even if the stream buffer is full (number of samples reached).*/
-}Adc_StreamBufferModeType;
-
+    ADC_STREAM_BUFFER_LINEAR,  /*The ADC Driver stops the conversion as soon as the stream buffer is full (number of samples reached).*/
+    ADC_STREAM_BUFFER_CIRCULAR /*The ADC Driver continues the conversion even if the stream buffer is full (number of samples reached).*/
+} Adc_StreamBufferModeType;
 
 typedef enum
 {
@@ -111,18 +109,19 @@ typedef enum
     ADC_INTERRUPTS
 } Adc_ResultReadMode; /*type for method reading ADC Value*/
 
+typedef struct
+{
+    Adc_ModuleType AdcModule;
+    Adc_SampleRateType SampleRate;
+} Adc_AdcModuleConfig;
 
-typedef struct {
-	Adc_ModuleType AdcModule ; 
-	Adc_SampleRateType SampleRate ; 
-}Adc_AdcModuleConfig;
-
-typedef struct {
-	Adc_SampleSequnecerType SampleSequencer; 
-	Adc_TriggerSourceType SequencerTriggerSource ; 
-	Adc_HwTriggerSourceType HwTriggerSource ; 
-	Adc_GroupConvModeType GroupConv ; 
-}Adc_SampleSequncerConfig;
+typedef struct
+{
+    Adc_SampleSequnecerType SampleSequencer;
+    Adc_TriggerSourceType SequencerTriggerSource;
+    Adc_HwTriggerSourceType HwTriggerSource;
+    Adc_GroupConvModeType GroupConv;
+} Adc_SampleSequncerConfig;
 
 typedef struct
 {
@@ -135,29 +134,29 @@ typedef struct
     Adc_ResultReadMode read;
 } Adc_ConfigChannel;
 
-typedef uint16 Adc_StreamNumSampleType  ;
+typedef uint16 Adc_StreamNumSampleType;
 typedef uint16 Adc_ValueGroupType;
 typedef uint8 Adc_GroupType;
 
-typedef uint8 Adc_GroupNumber ; 
-typedef uint8 Adc_GroupChannelSize ;  
-typedef struct 
+typedef uint8 Adc_GroupNumber;
+typedef uint8 Adc_GroupChannelSize;
+typedef struct
 {
-		Adc_GroupNumber Num ; 
-	Adc_GroupChannelSize size ; 
-    Adc_ModuleType AdcModule ; 
-    Adc_SampleSequncerConfig seqConfig ; 
-    Adc_GroupConvModeType conversionMode ; 
-    Adc_StreamBufferModeType bufferMode ; 
-    Adc_ChannelType groupChannels[MAX_CHANNELS_PER_GROUP] ; 
-}Adc_ConfigChannelGroup;
+    Adc_GroupNumber Num;
+    Adc_GroupChannelSize size;
+    Adc_ModuleType AdcModule;
+    Adc_SampleSequncerConfig seqConfig;
+    Adc_StreamBufferModeType bufferMode;
+    Adc_ChannelType groupChannels[MAX_CHANNELS_PER_GROUP];
+} Adc_ConfigChannelGroup;
 
 typedef struct
 {
     Adc_AdcModuleConfig AdcConfiguredModules[CONFIG_ADC_MODULE];
-  	Adc_SampleSequncerConfig AdcConfiguredSequncers[CONFIG_SAMPLE_SEQUNECERS];
-    Adc_ConfigChannel AdcConfiguredChannels[CONFIG_ANALOG_CHANNELS];
-    Adc_ConfigChannelGroup AdcConfiguredGroups [CONFIG_ADC_GROUPS] ; 
+    //Adc_SampleSequncerConfig AdcConfiguredSequncers[CONFIG_SAMPLE_SEQUNECERS];
+    // Adc_ConfigChannel AdcConfiguredChannels[CONFIG_ANALOG_CHANNELS];
+    Adc_ConfigChannelGroup AdcConfiguredGroups[CONFIG_ADC_GROUPS];
 } Adc_ConfigType;
 
+extern Adc_ConfigType adc_Configs;
 #endif

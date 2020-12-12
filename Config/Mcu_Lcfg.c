@@ -29,9 +29,9 @@ const Mcu_ConfigType MCU_Configurations =
 
     /*Enable Periphral Clocks*/
 
-    /*Enable Clock Gate WatchDog 0*/
-    .perphClock[0].perph =MCU_WD , 
-    .perphClock[0].instance= 0,
+    /*Enable Clock gate ADC0*/
+    .perphClock[0].perph = MCU_CADC, 
+    .perphClock[0].instance= 1,
 
     /*Enable Clock gate ADC0*/
     .perphClock[1].perph = MCU_CADC, 
