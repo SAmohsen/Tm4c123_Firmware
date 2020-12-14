@@ -24,7 +24,6 @@
 #define PORT_INITIALIZED (1U)
 #define PORT_NOT_INITIALIZED (0U)
 
-#define PORTS_NUMBER 6
 #define NUMBER_OF_CHANNELS_PER_PORT 8
 #define GPIO_COMMIT_UNLOCKING_VALUE 0x4C4F434B
 
@@ -35,54 +34,54 @@ typedef enum
 {
 
     /*PORTA*/
-    PA0 = 0,
-    PA1,
-    PA2,
-    PA3,
-    PA4,
-    PA5,
-    PA6,
-    PA7,
+    PORT_PA0 = 0,
+    PORT_PA1,
+    PORT_PA2,
+    PORT_PA3,
+    PORT_PA4,
+    PORT_PA5,
+    PORT_PA6,
+    PORT_PA7,
     /*PORTB*/
-    PB0 = 8,
-    PB1,
-    PB2,
-    PB3,
-    PB4,
-    PB5,
-    PB6,
-    PB7,
+    PORT_PB0 = 8,
+    PORT_PB1,
+    PORT_PB2,
+    PORT_PB3,
+    PORT_PB4,
+    PORT_PB5,
+    PORT_PB6,
+    PORT_PB7,
     /*PORTC*/
-    PC0 = 16,
-    PC1,
-    PC2,
-    PC3,
-    PC4,
-    PC5,
-    PC6,
-    PC7,
+    PORT_PC0 = 16,
+    PORT_PC1,
+    PORT_PC2,
+    PORT_PC3,
+    PORT_PC4,
+    PORT_PC5,
+    PORT_PC6,
+    PORT_PC7,
     /*PORTD*/
-    PD0 = 24,
-    PD1,
-    PD2,
-    PD3,
-    PD4,
-    PD5,
-    PD6,
-    PD7,
+    PORT_PD0 = 24,
+    PORT_PD1,
+    PORT_PD2,
+    PORT_PD3,
+    PORT_PD4,
+    PORT_PD5,
+    PORT_PD6,
+    PORT_PD7,
     /*PORTE */
-    PE0 = 32,
-    PE1,
-    PE2,
-    PE3,
-    PE4,
-    PE5,
+    PORT_PE0 = 32,
+    PORT_PE1,
+    PORT_PE2,
+    PORT_PE3,
+    PORT_PE4,
+    PORT_PE5,
     /*PORTF*/
-    PF0 = 40,
-    PF1,
-    PF2,
-    PF3,
-    PF4
+    PORT_PF0 = 40,
+    PORT_PF1,
+    PORT_PF2,
+    PORT_PF3,
+    PORT_PF4
 } Port_PinType;
 typedef enum
 {
@@ -169,15 +168,29 @@ typedef enum
     PORT_PIN_DIGITAL,
     PORT_PIN_ANALOG
 } Port_PinGpioMode;
+typedef enum
+{
+    PORT_PIN_CURRENTDRIVE_2MA,
+	  PORT_PIN_CURRENTDRIVE_4MA,
+	  PORT_PIN_CURRRNTDRIVE_8MA
+} Port_PinCurrentDriveType;
+
+typedef enum {
+	  PORT_PIN_INTDISABLE,
+    PORT_PIN_INTFALLINGEDGE,
+    PORT_PIN_INTRISINGEDGE,
+    PORT_PIN_INTBOTHEDGES
+}Port_PinExtIntCtrlType;
 
 typedef struct
 {
     Port_PinType ChannelNumber;
     Port_PinDirectionType PinDirection;
+	Port_PinInitialValueType pinInitialValue;
     Port_PinModeType pinMode;
     Port_InternalAttachType ExtAttach;
-    Port_PinInitialValueType pinInitialValue;
-    Port_IntCtrType IntCtrl;
+		Port_PinCurrentDriveType currentDrive ; 
+		Port_PinExtIntCtrlType intCtrl ; 
 } Port_ConfigChannel;
 
 /*Type of the external data structure containing the initialization data for this module. */

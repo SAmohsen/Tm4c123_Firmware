@@ -4,6 +4,105 @@
 #include "Compiler.h"
 #include "Platform_Types.h"
 #include "Std_Types.h"
+
+
+
+
+/**********************************************************************************************************************
+ *   GPIO HW
+ *********************************************************************************************************************/
+
+#define DIO_PORTS_NUMBER 6
+#define PORTS_NUMBER 6
+
+#define PORTA_BASE_ADDRESS    (0x40004000)
+#define PORTB_BASE_ADDRESS    (0x40005000)
+#define PORTC_BASE_ADDRESS    (0x40006000)
+#define PORTD_BASE_ADDRESS    (0x40007000)
+#define PORTE_BASE_ADDRESS    (0x40024000)
+#define PORTF_BASE_ADDRESS    (0x40025000)
+
+
+typedef struct {
+    /* 0x3FC */ volatile unsigned long GPIODATA ;
+    /* 0x400 */ volatile unsigned long GPIODIR  ;
+    /* 0x404 */ volatile unsigned long GPIOIS   ;
+    /* 0x408 */ volatile unsigned long GPIOIBE  ;
+    /* 0x40C */ volatile unsigned long GPIOIEV  ;
+    /* 0x410 */ volatile unsigned long GPIOIM   ;
+    /* 0x414 */ volatile unsigned long GPIORIS  ;
+    /* 0x418 */ volatile unsigned long GPIOMIS  ;
+    /* 0x41C */ volatile unsigned long GPIOICR  ;
+    /* 0x420 */ volatile unsigned long GPIOAFSEL;
+     /*gap*/        unsigned long  RESERVED1[55];
+    /* 0x500 */ volatile unsigned long GPIODR2R ;
+    /* 0x504 */ volatile unsigned long GPIODR4R ;
+    /* 0x508 */ volatile unsigned long GPIODR8R ;
+    /* 0x50C */ volatile unsigned long GPIOODR  ;
+    /* 0x510 */ volatile unsigned long GPIOPUR  ;
+    /* 0x514 */ volatile unsigned long GPIOPDR  ;
+    /* 0x518 */ volatile unsigned long GPIOSLR  ;
+    /* 0x51C */ volatile unsigned long GPIODEN  ;
+    /* 0x520 */ volatile unsigned long GPIOLOCK ;
+    /* 0x524 */ volatile unsigned long GPIOCR   ;
+		/*0x528*/   volatile unsigned long GPIOAMSEL ; 
+		/*0x52C*/ volatile unsigned long GPIOPCTL ; 
+		/*0x530*/ volatile unsigned long GPIOADCCTL ; 
+}GPIO_typedef;
+
+#define  GPIO_DATA_REGISTER_OFFSET         0x3FC 
+#define  GPIO_DIR_REGISTER_OFFSET          0x400 
+#define  GPIO_IS_REGISTER_OFFSET           0x404 
+#define  GPIO_IBE_REGISTER_OFFSET          0x408 
+#define  GPIO_IEV_REGISTER_OFFSET          0x40C 
+#define  GPIO_IM_REGISTER_OFFSET           0x410 
+#define  GPIO_RIS_REGISTER_OFFSET          0x414 
+#define  GPIO_MIS_REGISTER_OFFSET          0x418 
+#define  GPIO_ICR_REGISTER_OFFSET          0x41C 
+#define  GPIO_AFSEL_REGISTER_OFFSET        0x420 
+#define  GPIO_DR2R_REGISTER_OFFSET         0x500 
+#define  GPIO_DR4R_REGISTER_OFFSET         0x504 
+#define  GPIO_DR8R_REGISTER_OFFSET         0x508 
+#define  GPIO_ODR_REGISTER_OFFSET          0x50C 
+#define  GPIO_PUR_REGISTER_OFFSET          0x510 
+#define  GPIO_PDR_REGISTER_OFFSET          0x514 
+#define  GPIO_SLR_REGISTER_OFFSET          0x518 
+#define  GPIO_DEN_REGISTER_OFFSET          0x51C 
+#define  GPIO_LOCK_REGISTER_OFFSET         0x520 
+#define  GPIO_CR_REGISTER_OFFSET           0x524 
+#define  GPIO_AMSEL_REGISTER_OFFSET        0x528 
+#define  GPIO_PCTL _REGISTER_OFFSET	       0x52C
+#define  GPIO_ADCCTL_REGISTER_OFFSET	     0x530
+
+		
+		
+#define GPIODATA(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DATA_REGISTER_OFFSET))
+#define GPIODIR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DIR_REGISTER_OFFSET))
+#define GPIODATA(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DATA_REGISTER_OFFSET))
+#define GPIOCR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_CR_REGISTER_OFFSET))
+#define GPIOAFSEL(PORT_ID)(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_AFSEL_REGISTER_OFFSET))
+#define GPIOPUR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_PUR_REGISTER_OFFSET))
+#define GPIOPDR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_PDR_REGISTER_OFFSET))
+#define GPIODEN(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DEN_REGISTER_OFFSET))
+#define GPIOLOCK(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_LOCK_REGISTER_OFFSET))
+#define GPIOAMSEL(PORT_ID)(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_AMSEL_REGISTER_OFFSET))
+#define GPIOCR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_CR_REGISTER_OFFSET))
+#define GPIOODR(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_ODR_REGISTER_OFFSET))
+#define ADCCTL(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_ADCCTL_REGISTER_OFFSET))
+#define GPIOPCTL(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_ADCCTL_REGISTER_OFFSET))
+#define GPIODR2R(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DR2R_REGISTER_OFFSET))
+#define GPIODR4R(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DR4R_REGISTER_OFFSET))
+#define GPIODR8R(PORT_ID) (*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_DR8R_REGISTER_OFFSET))
+#define GPIOIBE(PORT_ID)	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_IBE_REGISTER_OFFSET))
+#define GPIOIEV(PORT_ID)	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_IEV_REGISTER_OFFSET))
+#define GPIOIM(PORT_ID) 	(*(volatile uint32 *)(GPIOPortsBaseAddress[PORT_ID] + GPIO_IM_REGISTER_OFFSET))
+
+extern const uint32 GPIOPortsBaseAddress[DIO_PORTS_NUMBER] ;
+/**********************************************************************************************************************
+ *  End Gpio HW
+ *********************************************************************************************************************/
+
+
 /**********************************************************************************************************************
  *  Start System Control HW
  *********************************************************************************************************************/
@@ -131,57 +230,6 @@ typedef union
 
 
 
-
-/*===========================================================*
- * GPIO REGISTERS                                            *
- *========================================================== */
-typedef struct
-{
-    uint32 GPIODATA    ;
-    uint32 GPIODIR     ;
-    uint32 GPIOIS      ;
-    uint32 GPIOIBE     ;
-    uint32 GPIOIEV     ;
-    uint32 GPIOIM      ;
-    uint32 GPIORIS     ;
-    uint32 GPIOMIS     ;
-    uint32 GPIOICR     ;
-      uint32 GPIOAFSEL   ; /*offset : 0x420+4 byte = 0x424 end:0x424*/
-
-    uint8 Reserved[0xDC];/*500-424 = DC byte 0r 37 uint32 */
-    
-    uint32 GPIODR2R    ; /*offset : 0x500 */
-    uint32 GPIODR4R    ;
-    uint32 GPIODR8R    ;
-    uint32 GPIOODR     ;
-    uint32 GPIOPUR     ;
-    uint32 GPIOPDR     ;
-    uint32 GPIOSLR     ;
-    uint32 GPIODEN     ;
-    uint32 GPIOLOCK    ;
-    uint32 GPIOCR      ;
-    uint32 GPIOAMSEL   ;
-    uint32 GPIOPCTL    ;
-    uint32 GPIOADCCTL  ;
-    uint32 GPIODMACTL  ;
-}PORT_Registers;
-
-#define PORTA_REG     (*((volatile PORT_Registers*)0x400043FC))
-#define PORTB_REG     (*((volatile PORT_Registers*)0x400053FC))
-#define PORTC_REG     (*((volatile PORT_Registers*)0x400063FC))
-#define PORTD_REG     (*((volatile PORT_Registers*)0x400073FC))
-#define PORTE_REG     (*((volatile PORT_Registers*)0x400243FC))
-#define PORTF_REG     (*((volatile PORT_Registers*)0x400253FC))
-
-
-
-
-
-
-
-
-
-
 /**********************************************************************************************************************
  *  Start ADC HW
  *********************************************************************************************************************/
@@ -250,6 +298,8 @@ typedef struct
 /*0xFC8*/ volatile uint32 ADCCC      ;/*ADC Clock Configuration                              */
 }Adc_Regs;
 
+
+
 #define ADC0_BASE 0x40038000
 #define ADC1_BASE 0x40039000
 #define ADC0 ((Adc_Regs *)ADC0_BASE)
@@ -266,68 +316,47 @@ typedef struct
 #define EM3 12 
 #define SEQ3_TRIG_REG_MASK 0xFFFF1FFF
 
+
+#define ADC0_ACTSS_R (*((volatile unsigned long *)0x40038000))
+#define ADC0_SSMUX1_R (*((volatile unsigned long *)0x40038060))
+#define ADC0_SSFIFO1_R (*((volatile unsigned long *)0x40038068))
+#define ADC0_ISC_R (*((volatile unsigned long *)0x4003800C))
+
+
+#define ADCSSMUX0_OFFSET 0x040
+#define ADCSSMUX1_OFFSET 0x060
+#define ADCSSMUX2_OFFSET 0x080
+#define ADCSSMUX3_OFFSET 0x0A0
+
+
+#define SSCTL0_OFFSET (0x044)
+#define SSCTL1_OFFSET (0x064)
+#define SSCTL2_OFFSET (0x084)
+#define SSCTL3_OFFSET (0x0A4)
+
+
+
+#define ADC_SSFIFO0_OFFSET_REG 0x048
+#define ADC_SSFIFO1_OFFSET_REG 0x068
+#define ADC_SSFIFO2_OFFSET_REG 0x088
+#define ADC_SSFIFO3_OFFSET_REG 0x0A8
+
+#define ADCSSFIFO(ADC_MODULE,SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE] + adc_ssfifo[SEQ]))
+#define ADCACTSS(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0x000))
+#define ADCEMUX(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0x014))
+#define ADCSSMUX(ADC_MODULE,SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE] + adc_ssmuxRegs[SEQ]))
+#define ADCPSSI(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0x028))
+#define SSCTL(ADC_MODULE,SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE] + adc_ssctrlRegs[SEQ]))
+#define ADCPC(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0xFC4))
+	
+extern	const uint32  adc_ssctrlRegs[4] ; 
+extern	const	uint32  adc_ssmuxRegs[4] ;
+extern	const uint32 adcModules[2] ;
+extern	const	uint32  adc_ssfifo[4] ;
 /**********************************************************************************************************************
  *   END ADC HW
  *********************************************************************************************************************/
 
-typedef struct {
-    /* 0x3FC */ volatile unsigned long GPIODATA ;
-    /* 0x400 */ volatile unsigned long GPIODIR  ;
-    /* 0x404 */ volatile unsigned long GPIOIS   ;
-    /* 0x408 */ volatile unsigned long GPIOIBE  ;
-    /* 0x40C */ volatile unsigned long GPIOIEV  ;
-    /* 0x410 */ volatile unsigned long GPIOIM   ;
-    /* 0x414 */ volatile unsigned long GPIORIS  ;
-    /* 0x418 */ volatile unsigned long GPIOMIS  ;
-    /* 0x41C */ volatile unsigned long GPIOICR  ;
-    /* 0x420 */ volatile unsigned long GPIOAFSEL;
-     /*gap*/        unsigned long  RESERVED1[55];
-    /* 0x500 */ volatile unsigned long GPIODR2R ;
-    /* 0x504 */ volatile unsigned long GPIODR4R ;
-    /* 0x508 */ volatile unsigned long GPIODR8R ;
-    /* 0x50C */ volatile unsigned long GPIOODR  ;
-    /* 0x510 */ volatile unsigned long GPIOPUR  ;
-    /* 0x514 */ volatile unsigned long GPIOPDR  ;
-    /* 0x518 */ volatile unsigned long GPIOSLR  ;
-    /* 0x51C */ volatile unsigned long GPIODEN  ;
-    /* 0x520 */ volatile unsigned long GPIOLOCK ;
-    /* 0x524 */ volatile unsigned long GPIOCR   ;
-		/*0x528*/   volatile unsigned long GPIOAMSEL ; 
-		/*0x52C*/ volatile unsigned long GPIOPCTL ; 
-		/*0x530*/ volatile unsigned long GPIOADCCTL ; 
-}GPIO_typedef;
-
-#define  GPIO_DATA_REGISTER_OFFSET         0x3FC 
-#define  GPIO_DIR_REGISTER_OFFSET          0x400 
-#define  GPIO_IS_REGISTER_OFFSET           0x404 
-#define  GPIO_IBE_REGISTER_OFFSET          0x408 
-#define  GPIO_IEV_REGISTER_OFFSET          0x40C 
-#define  GPIO_IM_REGISTER_OFFSET           0x410 
-#define  GPIO_RIS_REGISTER_OFFSET          0x414 
-#define  GPIO_MIS_REGISTER_OFFSET          0x418 
-#define  GPIO_ICR_REGISTER_OFFSET          0x41C 
-#define  GPIO_AFSEL_REGISTER_OFFSET        0x420 
-#define  GPIO_DR2R_REGISTER_OFFSET         0x500 
-#define  GPIO_DR4R_REGISTER_OFFSET         0x504 
-#define  GPIO_DR8R_REGISTER_OFFSET         0x508 
-#define  GPIO_ODR_REGISTER_OFFSET          0x50C 
-#define  GPIO_PUR_REGISTER_OFFSET          0x510 
-#define  GPIO_PDR_REGISTER_OFFSET          0x514 
-#define  GPIO_SLR_REGISTER_OFFSET          0x518 
-#define  GPIO_DEN_REGISTER_OFFSET          0x51C 
-#define  GPIO_LOCK_REGISTER_OFFSET         0x520 
-#define  GPIO_CR_REGISTER_OFFSET           0x524 
-#define  GPIO_AMSEL_REGISTER_OFFSET        0x528 
-#define 	GPIO_PCTL _REGISTER_OFFSET	     0x52C
-#define 	GPIO_ADCCTL_REGISTER_OFFSET	     0x530
-
-
-#define PORTA_BASE_ADDRESS    (0x40004000)
-#define PORTB_BASE_ADDRESS    (0x40005000)
-#define PORTC_BASE_ADDRESS    (0x40006000)
-#define PORTD_BASE_ADDRESS    (0x40007000)
-#define PORTE_BASE_ADDRESS    (0x40024000)
-#define PORTF_BASE_ADDRESS    (0x40025000)
 
 
 #endif

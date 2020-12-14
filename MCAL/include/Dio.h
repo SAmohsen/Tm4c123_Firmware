@@ -18,7 +18,7 @@
 #include "bit_math.h"
 #include "Dio_cfg.h"
 
-#define DIO_PORTS_NUMBER 6
+
 /*
  * Macros for Dio Status
  */

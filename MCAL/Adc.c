@@ -1,53 +1,19 @@
-#include "include/Adc.h"
+#include "Adc.h"
 #include "tm4c123gh6pm_hw.h"
 
-STATIC Adc_ModuleStatusType g_Adc_Status = ADC_NOT_INITIALIZED;
-
 /*global Variable To Hold Adc Configurations */
-STATIC const Adc_ConfigChannel *g_AdcConfiguredChannels = NULL_PTR;
+STATIC uint8 g_SeqConfiguredGroup[ADC_HW_UNITS] = {0};
+STATIC Adc_ConfigChannelGroup *g_AdcConfiguredChannels = NULL_PTR;
+STATIC Adc_ValueGroupType *g_DataBufferPtr[CONFIG_ADC_GROUPS];
+STATIC Adc_ValueGroupType *g_DataBufferPtr[CONFIG_ADC_GROUPS];
 
 /*
 The TM4C123GH6PM microcontroller contains two identical Analog-to-Digital Converter modules.
 These two modules, ADC0 and ADC1, share the same 12 analog input channels.
 	**/
-#define ADC0_BASE 0x40038000
-#define ADC1_BASE 0x40039000
-static uint32 adcModules[2] =
-	{
-		ADC0_BASE,
-		ADC1_BASE};
-#define ADCSSMUX0_OFFSET 0x040
-#define ADCSSMUX1_OFFSET 0x060
-#define ADCSSMUX2_OFFSET 0x080
-#define ADCSSMUX3_OFFSET 0x0A0
 
-static uint32 const adc_ssmuxRegs[4] =
-	{
-		ADCSSMUX0_OFFSET,
-		ADCSSMUX1_OFFSET,
-		ADCSSMUX2_OFFSET,
-		ADCSSMUX3_OFFSET};
-STATIC Adc_ValueGroupType *g_DataBufferPtr[CONFIG_ADC_GROUPS];
-
-#define ADCACTSS(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0x000))
-#define ADCEMUX(ADC_MODULE) (*(volatile uint32 *)(adcModules[ADC_MODULE] + 0x014))
-#define ADCSSMUX(ADC_MODULE, SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE] + adc_ssmuxRegs[SEQ]))
-#define ADC0_ACTSS_R (*((volatile unsigned long *)0x40038000))
-#define ADC0_SSMUX1_R (*((volatile unsigned long *)0x40038060))
-
-#define SSCTL0_OFFSET (0x044)
-#define SSCTL1_OFFSET (0x064)
-#define SSCTL2_OFFSET (0x084)
-#define SSCTL3_OFFSET (0x0A4)
-
-static uint32 const adc_ssctrlRegs[4] =
-	{
-		SSCTL0_OFFSET,
-		SSCTL1_OFFSET,
-		SSCTL2_OFFSET,
-		SSCTL3_OFFSET};
-#define SSCTL(ADC_MODULE, SEQ) (*(volatile uint32 *)(adcModules[ADC_MODULE] + adc_ssctrlRegs[SEQ]))
 uint32 x;
+
 STATIC void __sequencerConfig(Adc_ConfigChannelGroup *groups)
 {
 	uint8 itr;
@@ -72,10 +38,8 @@ STATIC void __sequencerConfig(Adc_ConfigChannelGroup *groups)
 		for (itr2 = 0; itr2 < groups[itr].size; itr2++)
 		{
 			ADCSSMUX(groups[itr].AdcModule, groups[itr].seqConfig.SampleSequencer) |= (groups[itr].groupChannels[itr2] << itr2 * 4);
+			SSCTL(groups[itr].AdcModule, groups[itr].seqConfig.SampleSequencer) |= (6 << itr2 * 4);
 		}
-
-		SSCTL(groups[itr].AdcModule, groups[itr].seqConfig.SampleSequencer) = 6;
-
 		/*Enable Sequencers */
 		ADCACTSS(groups[itr].AdcModule) |= (1 << groups[itr].seqConfig.SampleSequencer);
 	}
@@ -87,26 +51,113 @@ void Adc_Init(Adc_ConfigType *ConfigPtr)
 	/*Init ADC Modules With Required Sample Rate*/
 	for (itr = 0; itr < CONFIG_ADC_MODULE; itr++)
 	{
-		if (ADC_MODULE_0 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
-		{
-			SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC0_SAMPLE_RATE_MASK) | ((ConfigPtr->AdcConfiguredModules[itr]).SampleRate << MAXADC0SPD);
-		}
-		else if (ADC_MODULE_1 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
-		{
-			SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC1_SAMPLE_RATE_MASK) | ((ConfigPtr->AdcConfiguredModules[itr]).SampleRate << MAXADC1SPD);
-		}
+		ADCPC((ConfigPtr->AdcConfiguredModules[itr]).AdcModule) = (ConfigPtr->AdcConfiguredModules[itr]).SampleRate;
+
+		//		if (ADC_MODULE_0 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
+		//		{
+		//			SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC0_SAMPLE_RATE_MASK) | ((ConfigPtr->AdcConfiguredModules[itr]).SampleRate << MAXADC0SPD);
+		//		}
+		//		else if (ADC_MODULE_1 == (ConfigPtr->AdcConfiguredModules[itr]).AdcModule)
+		//		{
+		//			SYSCTL_RCGC0_R = (SYSCTL_RCGC0_R & ADC1_SAMPLE_RATE_MASK) | ((ConfigPtr->AdcConfiguredModules[itr]).SampleRate << MAXADC1SPD);
+		//		}
 	}
 	__sequencerConfig(ConfigPtr->AdcConfiguredGroups);
+	g_AdcConfiguredChannels = ConfigPtr->AdcConfiguredGroups;
+}
+void Adc_StartGroupConversion(Adc_GroupType Group)
+{
+	uint8 seq = g_AdcConfiguredChannels[Group].seqConfig.SampleSequencer;
+	ADCPSSI(g_AdcConfiguredChannels[Group].AdcModule) |= (1 << seq);
+}
+Std_ReturnType Adc_SetupResultBuffer(Adc_GroupType Group, Adc_ValueGroupType *DataBufferPtr)
+{
+	Std_ReturnType ret = E_NOT_OK;
+
+	g_DataBufferPtr[Group] = DataBufferPtr;
+	if (g_AdcConfiguredChannels[Group].AdcModule == ADC_MODULE_0)
+	{
+		g_SeqConfiguredGroup[g_AdcConfiguredChannels[Group].seqConfig.SampleSequencer] = g_AdcConfiguredChannels[Group].Num;
+	}
+	else if (g_AdcConfiguredChannels[Group].AdcModule == ADC_MODULE_1)
+	{
+		g_SeqConfiguredGroup[g_AdcConfiguredChannels[Group].seqConfig.SampleSequencer + 4] = g_AdcConfiguredChannels[Group].Num;
+	}
+	return ret;
+}
+void ADC0SS0_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC0_SEQ0_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_0, SS0);
+	}
 }
 
-void ADC0SS0_Handler(void) {}
-void ADC0SS1_Handler(void) {}
-void ADC0SS2_Handler(void) {}
-void ADC0SS3_Handler(void) {}
-void ADC1SS0_Handler(void) {}
-void ADC1SS1_Handler(void) {}
-void ADC1SS2_Handler(void) {}
-void ADC1SS3_Handler(void) {}
+void ADC0SS2_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC0_SEQ2_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_0, SS2);
+	}
+}
+void ADC0SS1_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC0_SEQ1_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_0, SS1);
+	}
+}
+void ADC0SS3_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC0_SEQ3_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_0, SS3);
+	}
+}
+void ADC1SS1_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC1_SEQ0_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_1, SS0);
+	}
+}
+void ADC1SS0_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC1_SEQ1_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_1, SS1);
+	}
+}
+void ADC1SS2_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC1_SEQ2_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_1, SS2);
+	}
+}
+void ADC1SS3_Handler(void)
+{
+	Adc_GroupType groupId = g_SeqConfiguredGroup[ADC1_SEQ3_HW];
+
+	for (uint8 itr = 0; itr < g_AdcConfiguredChannels[groupId].size; itr++)
+	{
+		(*(g_DataBufferPtr[groupId] + itr)) = ADCSSFIFO(ADC_MODULE_1, SS3);
+	}
+}
 
 #if 0 
 /*global Variable To Hold Module Status */

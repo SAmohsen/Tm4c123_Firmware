@@ -14,20 +14,7 @@
 
 STATIC Dio_ConfigChannel *Dio_PortChannels = NULL_PTR;
 STATIC Dio_PortType *Dio_Ports = NULL_PTR;
-STATIC Dio_ChannelGroupType *Dio_ChannelGroups = NULL_PTR;
 STATIC uint8 Dio_Status = DIO_NOT_INITIALIZED;
-
-/*GPIO PORTS Base Addresses */
-static const uint32 GPIOPortsBaseAddress[DIO_PORTS_NUMBER] =
-	{
-		PORTA_BASE_ADDRESS,
-		PORTB_BASE_ADDRESS,
-		PORTC_BASE_ADDRESS,
-		PORTD_BASE_ADDRESS,
-		PORTE_BASE_ADDRESS,
-		PORTF_BASE_ADDRESS};
-
-#define GPIODATA(DIO_PORT) (*(volatile uint32 *)(GPIOPortsBaseAddress[DIO_PORT] + GPIO_DATA_REGISTER_OFFSET))
 
 /************************************************************************************
 * Service Name: Dio_Init
@@ -52,7 +39,6 @@ void Dio_Init(Dio_ConfigType *ConfigPtr)
 		Dio_Status = DIO_INITIALIZED;
 		Dio_PortChannels = ConfigPtr->Channels; /* address of the first Channels structure --> Channels[0] */
 		Dio_Ports = ConfigPtr->ports;
-		Dio_ChannelGroups = ConfigPtr->groups;
 	}
 }
 
@@ -70,15 +56,18 @@ void Dio_Init(Dio_ConfigType *ConfigPtr)
 ************************************************************************************/
 void Dio_WriteChannel(Dio_ChannelType ChannelId, Dio_LevelType Level)
 {
-	if (Level == STD_HIGH)
+	if (Dio_Status == DIO_INITIALIZED)
 	{
-		/* Write Logic High */
-		GPIODATA(Dio_PortChannels[ChannelId].Port_Num) |= (1 << Dio_PortChannels[ChannelId].Ch_Num);
-	}
-	else if (Level == STD_LOW)
-	{
-		/* Write Logic Low */
-		GPIODATA(Dio_PortChannels[ChannelId].Port_Num) &= ~(1 << Dio_PortChannels[ChannelId].Ch_Num);
+		if (Level == STD_HIGH)
+		{
+			/* Write Logic High */
+			GPIODATA(Dio_PortChannels[ChannelId].Port_Num) |= (1 << Dio_PortChannels[ChannelId].Ch_Num);
+		}
+		else if (Level == STD_LOW)
+		{
+			/* Write Logic Low */
+			GPIODATA(Dio_PortChannels[ChannelId].Port_Num) &= ~(1 << Dio_PortChannels[ChannelId].Ch_Num);
+		}
 	}
 }
 
@@ -198,6 +187,5 @@ Dio_PortLevelType Dio_ReadChannelGroup(const Dio_ChannelGroupType *ChannelGroupI
 ************************************************************************************/
 void Dio_WriteChannelGroup(const Dio_ChannelGroupType *ChannelGroupIdPtr, Dio_PortLevelType Level)
 {
-
 	GPIODATA(ChannelGroupIdPtr->PortIndex) = ((GPIODATA(ChannelGroupIdPtr->PortIndex)) & (~(ChannelGroupIdPtr->mask))) | (Level << ChannelGroupIdPtr->offset);
 }

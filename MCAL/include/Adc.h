@@ -7,6 +7,18 @@
 
 #include "Adc_cfg.h"
 
+
+#define ADC_HW_UNITS 8
+
+#define ADC0_SEQ0_HW 0
+#define ADC0_SEQ1_HW 1
+#define ADC0_SEQ2_HW 2
+#define ADC0_SEQ3_HW 3
+#define ADC1_SEQ0_HW 4
+#define ADC1_SEQ1_HW 5
+#define ADC1_SEQ2_HW 6
+#define ADC1_SEQ3_HW 7
+
 /**********************************************************************************************************************
  *  GLOBAL DATA TYPES AND STRUCTURES
  *********************************************************************************************************************/
@@ -28,10 +40,10 @@ typedef enum
 /*Type For seting the rate at which ADC module samples data*/
 typedef enum
 {
-    ADC_SAMPLE_RATE_125K, /* 125K samples/second	*/
-    ADC_SAMPLE_RATE_250K, /* 250K samples/second */
-    ADC_SAMPLE_RATE_500K, /* 500K samples/second */
-    ADC_SAMPLE_RATE_1M    /* 1M samples/second */
+    ADC_SAMPLE_RATE_125K =1 , /* 125K samples/second	*/
+    ADC_SAMPLE_RATE_250K =3 , /* 250K samples/second */
+    ADC_SAMPLE_RATE_500K =5, /* 500K samples/second */
+    ADC_SAMPLE_RATE_1M=7    /* 1M samples/second */
 } Adc_SampleRateType;
 
 /*Numeric ID For Sequencer.*/

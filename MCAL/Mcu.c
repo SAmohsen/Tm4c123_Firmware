@@ -283,7 +283,7 @@ Std_ReturnType Mcu_InitClock(Mcu_ClockType ClockSetting)
 				SYSCTL_RCC_R &= ~(1 << MOSCDIS);
 			}
 			oscClockVal = Mcu_GetOscClockValue(ClockSetting); /*Save Osc Clock*/
-			 /*Set system clock divisor.*/
+															  /*Set system clock divisor.*/
 			sysDiv = (oscClockVal / g_Mcu_Configs->ConfiguredclockSettings[ClockSetting].desiredClock) - 1;
 			SYSCTL_RCC2_R = (SYSCTL_RCC2_R & 0xE03FFFFF) | (sysDiv << 22);
 		}
